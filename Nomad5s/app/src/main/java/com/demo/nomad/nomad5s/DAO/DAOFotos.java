@@ -28,7 +28,6 @@ public class DAOFotos extends DatabaseHelper {
     public DAOFotos(Context context) {
         super(context);
     }
-
     public void addFoto (Foto unaFoto){
 
         if(!checkIfExist(unaFoto.getIdFoto())) {
@@ -42,19 +41,9 @@ public class DAOFotos extends DatabaseHelper {
             row.put(COMENTARIO, unaFoto.getComentario());
             //LE DIGO A LA BD QUE CARGUE LA FILA EN LA TABLA
             database.insert(TABLE_FOTO, null, row);
-            
             database.close();
         }
     }
-
-
-//    public void addAuditorias(List<Auditoria> formatosList, String tipoAuditoria){
-//
-//        for(Auditoria unAuditoria : formatosList){
-//            addAuditoria(unAuditoria, tipoAuditoria);
-//        }
-//    }
-
 
     public List<Foto> getAllFotos(SubItem unSubitem){
 
@@ -84,8 +73,6 @@ public class DAOFotos extends DatabaseHelper {
         return allFotos;
     }
 
-
-
     public Foto getFoto(String fotoId){
 
         SQLiteDatabase database = getReadableDatabase();
@@ -103,7 +90,6 @@ public class DAOFotos extends DatabaseHelper {
             laFoto.setRutaFoto(cursor.getString(cursor.getColumnIndex(RUTAFOTO)));
             laFoto.setComentario(cursor.getString(cursor.getColumnIndex(COMENTARIO)));
         }
-
         cursor.close();
         database.close();
 
@@ -114,5 +100,4 @@ public class DAOFotos extends DatabaseHelper {
         Foto unFoto = getFoto(id);
         return !(unFoto == null);
     }
-
 }
