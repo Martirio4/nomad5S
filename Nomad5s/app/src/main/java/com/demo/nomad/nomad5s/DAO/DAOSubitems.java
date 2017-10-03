@@ -5,23 +5,25 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.nomad.audit5s.Model.Auditoria;
+import com.demo.nomad.nomad5s.Model.Auditoria;
+import com.demo.nomad.nomad5s.Model.Foto;
+import com.demo.nomad.nomad5s.Model.SubItem;
+
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by digitalhouse on 10/06/17.
- */
+
 
 public class DAOSubitems extends DatabaseHelper {
 
-   public static final String IDAUDITORIA = "IDAUDITORIA";
-   public static final String FECHA_AUDITORIA = "FECHA_AUDITORIA";
-   public static final String USUARIO = "USUARIO";
-   public static final String PUNTAJE_FINAL = "PUNTAJE_FINAL";
-   public static final String TABLE_AUDITORIAS="TABLE_AUDITORIAS";
+   public static final String IDSUBITEM = "IDSUBITEM";
+   public static final String PUNTAJE = "PUNTAJE";
+   public static final String IDCRITERIO = "IDCRITERIO";
+   public static final String IDFOTO = "IDFOTO";
+   public static final String TABLE_SUBITEMS="TABLE_SUBITEMS";
+
+    private Context context;
 
 
 
@@ -30,94 +32,104 @@ public class DAOSubitems extends DatabaseHelper {
 
     public DAOSubitems(Context context) {
         super(context);
+        this.context=context;
     }
 
 
-    public void addAuditoria (Auditoria unAuditoria){
-
-        if(!checkIfExist(unAuditoria.getIdAuditoria())) {
+    public void addSubItem (SubItem unSubItem){
 
             SQLiteDatabase database = getWritableDatabase();
 
             //CREO LA FILA Y LE CARGO LOS DATOS
-            ContentValues row = new ContentValues();
-            row.put(IDAUDITORIA, unAuditoria.getIdAuditoria());
-            row.put(FECHA_AUDITORIA, unAuditoria.getFechaAuditoria());
-            row.put(USUARIO, FirebaseAuth.getInstance().getCurrentUser().getUid());
-            row.put(PUNTAJE_FINAL,unAuditoria.getPuntajeFinal());
 
-            //LE DIGO A LA BD QUE CARGUE LA FILA EN LA TABLA
-            database.insert(TABLE_AUDITORIAS, null, row);
 
+            //SI EL SUBITEM TIENE UNA O MAS FOTOS HACE UN FOR EACH, CREA UN REGISTRO POR CADA FOTO.
+            if (unSubItem.getListaFotos().size()>=1){
+                for (Foto unaFoto:unSubItem.getListaFotos()
+                     ) {
+                    ContentValues row = new ContentValues();
+                    row.put(IDSUBITEM, unSubItem.getIdSubitem());
+                    row.put(PUNTAJE, unSubItem.getPuntuacion());
+                    row.put(IDCRITERIO, unSubItem.getCriteriosSubitem().getIdCriterio());
+                    row.put(IDFOTO,unaFoto.getIdFoto());
+                    database.insert(TABLE_SUBITEMS, null, row);
+                }
+
+            }
+            //SI EL SUBITEM NO TIENE FOTOS, COPIA SOLO LA INFO QUE EXISTE
+            else{
+                ContentValues row = new ContentValues();
+                row.put(IDSUBITEM, unSubItem.getIdSubitem());
+                row.put(PUNTAJE, unSubItem.getPuntuacion());
+                row.put(IDCRITERIO, unSubItem.getCriteriosSubitem().getIdCriterio());
+                database.insert(TABLE_SUBITEMS, null, row);
+            }
+
+            //CIERRO LA DB
             database.close();
-        }
+
     }
 
 
-//    public void addAuditorias(List<Auditoria> formatosList, String tipoAuditoria){
-//
-//        for(Auditoria unAuditoria : formatosList){
-//            addAuditoria(unAuditoria, tipoAuditoria);
-//        }
-//    }
+    public List<SubItem> getAllSubItems(Auditoria unaAuditoria){
 
-
-    public List<Auditoria> getAllAuditorias(){
-
-        List<Auditoria> auditorias  = new ArrayList<>();
+        List<SubItem> allSubitems  = new ArrayList<>();
         SQLiteDatabase database = getReadableDatabase();
-        String select = "SELECT * FROM " + TABLE_AUDITORIAS;
+
+        String select = "SELECT A.IDAUDITORIA, B.IDSUBITEM, B.IDFOTO " +
+                        "FROM TABLE_AUDITORIAS AS A, TABLE_SUBITEMS AS B "+
+                        "WHERE A.IDAUDITORIA="+unaAuditoria.getIdAuditoria()+
+                        " AND B.IDSUBITEM = A.IDSUBITEM ";
 
         Cursor cursor = database.rawQuery(select, null);
-        while(cursor.moveToNext()){
+        SubItem unSubItem = new SubItem();
+        List<Foto>unaListaFotos=new ArrayList<>();
+        unSubItem.setListaFotos(unaListaFotos);
 
+        while(cursor.moveToNext()){
             //LEER CADA FILA DE LA TABLA RESULTADO
-            Auditoria unAuditoria = new Auditoria();
-            unAuditoria.setIdAuditoria(cursor.getString(cursor.getColumnIndex(IDAUDITORIA)));
-            unAuditoria.setPuntajeFinal(cursor.getDouble(cursor.getColumnIndex(PUNTAJE_FINAL)));
-            unAuditoria.setFechaAuditoria(cursor.getString(cursor.getColumnIndex(FECHA_AUDITORIA)));
-            unAuditoria.setUsuario(cursor.getString(cursor.getColumnIndex(USUARIO)));
-            auditorias.add(unAuditoria);
+
+            //si el idsubitem que estoy leyendo es distinto al anterior agrego un nuevo subitem, sino agrego fotos
+            if (!cursor.getString(cursor.getColumnIndex(IDSUBITEM)).equals(unSubItem.getIdSubitem())){
+
+                if (unSubItem.getIdSubitem()!=null&&!unSubItem.getIdSubitem().isEmpty()){
+                    allSubitems.add(unSubItem);
+                    unSubItem = new SubItem();
+                    unaListaFotos=new ArrayList<>();
+                    unSubItem.setListaFotos(unaListaFotos);
+                }
+                unSubItem.setIdSubitem(cursor.getString(cursor.getColumnIndex(IDSUBITEM)));
+                unSubItem.setPuntuacion(cursor.getInt(cursor.getColumnIndex(PUNTAJE)));
+
+                //AGREGA LOS OBJETOS CRITERIO A LOS SUBITEMS
+                DAOCriterios daoCriterios = new DAOCriterios(context);
+                unSubItem.setCriteriosSubitem(daoCriterios.getCriterio(cursor.getString(cursor.getColumnIndex(IDCRITERIO))));
+
+                //SI EL SUBITEM TIENE FOTO LA AGREGA COMO OBJETO
+                if (cursor.getString(cursor.getColumnIndex(IDFOTO))!=null){
+                    DAOFotos daoFotos= new DAOFotos(context);
+                    unSubItem.agregarFoto(daoFotos.getFoto(cursor.getString(cursor.getColumnIndex(IDFOTO))));
+                }
+
+            }
+            //si el idsubitem actual es igual al anterior, agrego foto, si la hay.
+            else{
+                if (cursor.getString(cursor.getColumnIndex(IDFOTO))!=null){
+                    DAOFotos daoFotos= new DAOFotos(context);
+                    unSubItem.agregarFoto(daoFotos.getFoto(cursor.getString(cursor.getColumnIndex(IDFOTO))));
+                }
+            }
+
+        }
+        //cuando el cursor termina veo si me quedo el ultimo subitem sin guardar
+        if (unSubItem.getIdSubitem()!=null&&!unSubItem.getIdSubitem().isEmpty()){
+            allSubitems.add(unSubItem);
         }
         //CERRAR
         cursor.close();
         database.close();
-
-        return auditorias;
+        return allSubitems;
     }
 
-
-
-    public Auditoria getAuditoria(String id){
-
-        SQLiteDatabase database = getReadableDatabase();
-
-        String query = "SELECT * FROM " + TABLE_AUDITORIAS +
-                        " WHERE IDAUDITORIA=" + id;
-
-        Cursor cursor = database.rawQuery(query, null);
-        Auditoria unAuditoria = null;
-        if(cursor.moveToNext()){
-
-            //LEER CADA FILA DE LA TABLA RESULTADO
-
-            unAuditoria = new Auditoria();
-            unAuditoria.setIdAuditoria(cursor.getString(cursor.getColumnIndex(IDAUDITORIA)));
-            unAuditoria.setUsuario(cursor.getString(cursor.getColumnIndex(USUARIO)));
-            unAuditoria.setFechaAuditoria(cursor.getString(cursor.getColumnIndex(FECHA_AUDITORIA)));
-            unAuditoria.setPuntajeFinal(cursor.getDouble(cursor.getColumnIndex(PUNTAJE_FINAL)));
-
-        }
-
-        cursor.close();
-        database.close();
-
-        return unAuditoria;
-    }
-
-    public Boolean checkIfExist(String id){
-        Auditoria unAuditoria = getAuditoria(id);
-        return !(unAuditoria == null);
-    }
 
 }

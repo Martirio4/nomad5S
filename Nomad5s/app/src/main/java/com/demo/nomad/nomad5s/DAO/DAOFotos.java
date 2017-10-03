@@ -39,6 +39,7 @@ public class DAOFotos extends DatabaseHelper {
             row.put(IDFOTO, unaFoto.getIdFoto());
             row.put(RUTAFOTO, unaFoto.getRutaFoto());
             row.put(COMENTARIO, unaFoto.getComentario());
+
             //LE DIGO A LA BD QUE CARGUE LA FILA EN LA TABLA
             database.insert(TABLE_FOTO, null, row);
             database.close();

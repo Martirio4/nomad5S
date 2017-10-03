@@ -2,118 +2,46 @@ package com.demo.nomad.nomad5s.Model;
 
 import java.util.List;
 
-/**
- * Created by elmar on 11/8/2017.
- */
 
-public class SubItem{
-    private String id;
-    private String enunciado;
-    private String punto1;
-    private String punto2;
-    private String punto3;
-    private String punto4;
-    private String punto5;
- 
-    private String pertenencia;
-
-    private String aQuePertenece;
-
-    private Integer puntuacion1;
-    private String auditoria;
-
+public class SubItem {
+    private String idSubitem;
+    private Criterio criteriosSubitem;
+    private Integer puntuacion;
     private List<Foto> listaFotos;
 
-
+    //CONTRUCTOR
+    public SubItem(String idSubitem, Criterio criteriosSubitem, Integer puntuacion, List<Foto> listaFotos) {
+        this.idSubitem = idSubitem;
+        this.criteriosSubitem = criteriosSubitem;
+        this.puntuacion = puntuacion;
+        this.listaFotos = listaFotos;
+    }
+    //CONSTRUCTOR VACIO
     public SubItem() {
     }
-
-    public String getaQuePertenece() {
-        return aQuePertenece;
+    //GETTER AND SETTER
+    public String getIdSubitem() {
+        return idSubitem;
     }
 
-    public void setaQuePertenece(String aQuePertenece) {
-        this.aQuePertenece = aQuePertenece;
+    public void setIdSubitem(String idSubitem) {
+        this.idSubitem = idSubitem;
     }
 
-    public String getAuditoria() {
-        return auditoria;
+    public Criterio getCriteriosSubitem() {
+        return criteriosSubitem;
     }
 
-    public void setAuditoria(String auditoria) {
-        this.auditoria = auditoria;
+    public void setCriteriosSubitem(Criterio criteriosSubitem) {
+        this.criteriosSubitem = criteriosSubitem;
     }
 
-    public String getPertenencia() {
-        return pertenencia;
+    public Integer getPuntuacion() {
+        return puntuacion;
     }
 
-    public void setPertenencia(String pertenencia) {
-        this.pertenencia = pertenencia;
-    }
-
-    public String getPunto5() {
-        return punto5;
-    }
-
-    public void setPunto5(String punto5) {
-        this.punto5 = punto5;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getEnunciado() {
-        return enunciado;
-    }
-
-    public void setEnunciado(String enunciado) {
-        this.enunciado = enunciado;
-    }
-
-    public String getPunto1() {
-        return punto1;
-    }
-
-    public void setPunto1(String punto1) {
-        this.punto1 = punto1;
-    }
-
-    public String getPunto2() {
-        return punto2;
-    }
-
-    public void setPunto2(String punto2) {
-        this.punto2 = punto2;
-    }
-
-    public String getPunto3() {
-        return punto3;
-    }
-
-    public void setPunto3(String punto3) {
-        this.punto3 = punto3;
-    }
-
-    public String getPunto4() {
-        return punto4;
-    }
-
-    public void setPunto4(String punto4) {
-        this.punto4 = punto4;
-    }
-
-    public Integer getPuntuacion1() {
-        return puntuacion1;
-    }
-
-    public void setPuntuacion1(Integer puntuacion1) {
-        this.puntuacion1 = puntuacion1;
+    public void setPuntuacion(Integer puntuacion) {
+        this.puntuacion = puntuacion;
     }
 
     public List<Foto> getListaFotos() {
@@ -124,5 +52,7 @@ public class SubItem{
         this.listaFotos = listaFotos;
     }
 
-
+    public void agregarFoto(Foto unaFoto){
+        this.listaFotos.add(unaFoto);
+    }
 }
